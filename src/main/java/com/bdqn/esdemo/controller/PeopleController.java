@@ -3,11 +3,19 @@ package com.bdqn.esdemo.controller;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.action.search.SearchRequestBuilder;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.action.search.SearchType;
 import org.elasticsearch.action.update.UpdateRequest;
 import org.elasticsearch.action.update.UpdateResponse;
 import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
+import org.elasticsearch.index.query.BoolQueryBuilder;
+import org.elasticsearch.index.query.QueryBuilder;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.RangeQueryBuilder;
+import org.elasticsearch.search.SearchHit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -15,7 +23,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -122,7 +133,7 @@ public class PeopleController {
                 builder.field("age", age);
             }
             if (date != null) {
-                builder.field("date", date);
+                builder.field("date", date.getTime());
             }
             builder.endObject();
             updateRequest.doc(builder);
@@ -154,6 +165,51 @@ public class PeopleController {
         DeleteResponse result = this.client.prepareDelete("people", "man", id).get();
         return new ResponseEntity(result.getResult().toString(), HttpStatus.OK);
 
+    }
+
+
+    /**
+     * description: TODO  复合查询 按姓名和国家 还有年龄的范围
+     * create time: 2019/10/10 0010下午 9:32
+     *
+     * @ param [name, country, gtAge, ltAge]
+     * @ return org.springframework.http.ResponseEntity
+     */
+    @PostMapping("/query/people/man")
+    @ResponseBody
+    public ResponseEntity query(
+            @RequestParam(name = "name", required = false) String name,
+            @RequestParam(name = "country", required = false) String country,
+            @RequestParam(name = "gt_age", defaultValue = "0") int gtAge,
+            @RequestParam(name = "lt_age", required = false) Integer ltAge) {
+        BoolQueryBuilder boolQueryBuilder = QueryBuilders.boolQuery();
+        if (name != null) {
+            boolQueryBuilder.must(QueryBuilders.matchQuery("name", name));
+        }
+        if (country != null) {
+            boolQueryBuilder.must(QueryBuilders.matchQuery("country", country));
+        }
+        RangeQueryBuilder rangeQueryBuilder = QueryBuilders.rangeQuery("age").from(gtAge);
+        if (ltAge != null && ltAge > 0) {
+            rangeQueryBuilder.to(ltAge);
+        }
+        boolQueryBuilder.filter(rangeQueryBuilder);
+
+        SearchRequestBuilder searchRequestBuilder = this.client.prepareSearch("people")
+                .setTypes("man")
+                .setSearchType(SearchType.DFS_QUERY_THEN_FETCH)
+                .setQuery(boolQueryBuilder)
+                .setFrom(0)
+                .setSize(5);
+        System.out.println(searchRequestBuilder);
+        SearchResponse response = searchRequestBuilder.get();
+        List<Map<String, Object>> result = new ArrayList<Map<String, Object>>();
+        for (SearchHit hit :
+                response.getHits()) {
+            result.add(hit.getSource());
+        }
+
+        return new ResponseEntity(result, HttpStatus.OK);
     }
 }
 
