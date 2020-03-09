@@ -1,5 +1,6 @@
 package com.bdqn.esdemo.controller;
 
+import com.bdqn.esdemo.constant.SysConst;
 import org.elasticsearch.action.delete.DeleteResponse;
 import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexResponse;
@@ -12,7 +13,6 @@ import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.xcontent.XContentBuilder;
 import org.elasticsearch.common.xcontent.XContentFactory;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.search.SearchHit;
@@ -27,13 +27,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 /**
- * ClassName: BookController
- * create by:  xyf
- * description: TODO
- * create time: 2019/10/9 0009 下午 10:54
+ * ClassName: {@link PeopleController}
+ *
+ * @author xyf
+ * description:  用户控制器
+ * create time: 2020/3/9 17:02
  */
 @RestController
 public class PeopleController {
@@ -43,22 +43,21 @@ public class PeopleController {
 
     @GetMapping("/")
     public String index() {
-        return "index";
-    }
-
-    /**
-     * description: TODO  查询people的索引的相关数据
-     * create time: 2019/10/9 0009下午 11:09
-     *
-     * @ param [id]
-     * @ return org.springframework.http.ResponseEntity
-     */
-    @GetMapping("/get/people/man")
-    @ResponseBody
-    public ResponseEntity getPeople(@RequestParam(name = "id", defaultValue = "") String id) {
-        if (id.isEmpty()) {
-            return new ResponseEntity(HttpStatus.NOT_FOUND);
+            return "index";
         }
+
+        /**
+         * description: 查询people的索引的相关数据
+         * @date  2020/3/9 17:07
+         * @param	id
+         * @return org.springframework.http.ResponseEntity
+         */
+        @GetMapping("/get/people/man")
+        @ResponseBody
+        public ResponseEntity getPeople(@RequestParam(name = "id", defaultValue = "") String id) {
+            if (id.isEmpty()) {
+                return new ResponseEntity(HttpStatus.NOT_FOUND);
+            }
         GetResponse result = this.client.prepareGet("people", "man", id).get();
         if (!result.isExists()) {
             return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -67,7 +66,7 @@ public class PeopleController {
     }
 
     /**
-     * description: TODO 添加数据
+     * description:  添加数据
      * create time: 2019/10/9 0009下午 11:19
      *
      * @ param [name, country, age, date]
@@ -76,7 +75,6 @@ public class PeopleController {
     @PostMapping("/add/people/man")
     @ResponseBody
     public ResponseEntity addPeople(
-            @RequestParam(name = "id", required = true) String id,
             @RequestParam(name = "name") String name,
             @RequestParam(name = "country") String country,
             @RequestParam(name = "age") int age,
@@ -102,7 +100,7 @@ public class PeopleController {
 
 
     /**
-     * description: TODO 修改人物信息（通过id） 未完待续
+     * description:  修改人物信息（通过id） 未完待续
      * create time: 2019/10/9 0009下午 11:26
      *
      * @ param [name, country, age, date]
@@ -129,7 +127,7 @@ public class PeopleController {
             if (country != null) {
                 builder.field("country", country);
             }
-            if (age > 0 && age <= 100) {
+            if (age > 0 && age <= SysConst.MAX_AGE) {
                 builder.field("age", age);
             }
             if (date != null) {
@@ -169,7 +167,7 @@ public class PeopleController {
 
 
     /**
-     * description: TODO  复合查询 按姓名和国家 还有年龄的范围
+     * description:   复合查询 按姓名和国家 还有年龄的范围
      * create time: 2019/10/10 0010下午 9:32
      *
      * @ param [name, country, gtAge, ltAge]

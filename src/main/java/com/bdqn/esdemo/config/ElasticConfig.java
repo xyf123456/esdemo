@@ -11,15 +11,22 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 /**
- * ClassName: ElasticConfig
- * create by:  xyf
- * description: TODO Elasticsearch核心配置类
- * create time: 2019/10/8 0008 下午 10:59
+ * ClassName: {@link ElasticConfig}
+ *
+ * @author xyf
+ * description:  Elasticsearch核心配置类
+ * create time: 2020/3/9 17:01
  */
 @Configuration
 public class ElasticConfig {
 
 
+    /**
+     * description: 得到TransportClient组件（设置集群信息）
+     * @date  2020/3/9 17:01
+     * @param
+     * @return org.elasticsearch.client.transport.TransportClient
+     */
     @Bean
     public TransportClient client() throws UnknownHostException {
         InetSocketTransportAddress node = new InetSocketTransportAddress(
