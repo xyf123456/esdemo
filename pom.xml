@@ -19,7 +19,7 @@
 		<elasticsearch.version>5.6.16</elasticsearch.version>
 		<mybatis.plus.version>3.2.0</mybatis.plus.version>
 		<druid.version>1.1.10</druid.version>
-		<mysql.version>5.1.47</mysql.version>
+		<mysql.version>8.0.16</mysql.version>
 		<beetl.version>2.9.10</beetl.version>
 		<guava.version>28.1-jre</guava.version>
 		<log4j.version>1.2.17</log4j.version>
